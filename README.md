@@ -1,5 +1,7 @@
 # AV Data Capture (CLI)
 
+本工程修正了原工程大量的bug
+
 CLI 版本  
 ![](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
 ![](https://img.shields.io/github/license/yoshiko2/av_data_capture.svg?style=flat)
