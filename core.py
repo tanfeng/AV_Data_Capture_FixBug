@@ -42,7 +42,7 @@ def CreatFailedFolder(failed_folder):
             return 
 
 
-def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON返回元数据
+def get_data_from_json(file_number, filepath, conf: config.Config, cn_sub):  # 从JSON返回元数据
     """
     iterate through all services and fetch the data
     """
@@ -68,22 +68,32 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
     if "avsox" in sources and (re.match(r"^\d{5,}", file_number) or
         "HEYZO" in file_number or "heyzo" in file_number or "Heyzo" in file_number
     ):
+        if conf.debug() == True:
+            print('[+]select avsox')
         sources.insert(0, sources.pop(sources.index("avsox")))
     elif "fanza" in sources and (re.match(r"\d+\D+", file_number) or
         "siro" in file_number or "SIRO" in file_number or "Siro" in file_number
     ):
+        if conf.debug() == True:
+            print('[+]select fanza')
         sources.insert(0, sources.pop(sources.index("fanza")))
     elif "fc2" in sources and ("fc2" in file_number or "FC2" in file_number
     ):
+        if conf.debug() == True:
+            print('[+]select fc2')
         sources.insert(0, sources.pop(sources.index("fc2")))
     elif "dlsite" in sources and (
         "RJ" in file_number or "rj" in file_number or "VJ" in file_number or "vj" in file_number
     ):
+        if conf.debug() == True:
+            print('[+]select dlsite')
         sources.insert(0, sources.pop(sources.index("dlsite")))
 
     json_data = {}
     for source in sources:
         try:
+            if conf.debug() == True:
+                print('[+]select',source)
             json_data = json.loads(func_mapping[source](file_number))
             # if any service return a valid return, break
             if get_data_state(json_data):
@@ -100,7 +110,26 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
     # ================================================网站规则添加结束================================================
 
     title = json_data['title']
-    actor_list = str(json_data['actor']).strip("[ ]").replace("'", '').split(',')  # 字符串转列表
+
+    tlist = str(json_data['actor']).strip("[ ]").replace("'", '').split(',')  # 字符串转列表
+    actor_list = []
+    actor_trap = 0
+    actor_idx = 0
+    for actor in tlist:
+        if actor.find('(') >= 0 and actor.find(')') < 0:
+            actor_list.append(actor)
+            actor_idx = len(actor_list)-1
+            actor_trap = 1
+        elif actor.find(')') >= 0 and actor.find('(') < 0 and actor_trap:
+            actor_list[actor_idx] += ','+actor
+            actor_trap = 0
+        else:
+            if actor_trap:
+                actor_list[actor_idx] += ','+actor
+            else:
+                actor_list.append(actor)
+                actor_idx = len(actor_list)-1
+
     release = json_data['release']
     number = json_data['number']
     studio = json_data['studio']
@@ -143,6 +172,9 @@ def get_data_from_json(file_number, filepath, conf: config.Config):  # 从JSON�
     # ====================处理异常字符 END================== #\/:*?"<>|
 
     location_rule = eval(conf.location_rule())
+
+    if cn_sub == '1':
+        location_rule += "-C"
 
     # Process only Windows.
     if platform.system() == "Windows":
@@ -284,48 +316,48 @@ def print_files(path, c_word, naming_rule, part, cn_sub, json_data, filepath, fa
         with open(path + "/" + number + part + c_word + ".nfo", "wt", encoding='UTF-8') as code:
             print('<?xml version="1.0" encoding="UTF-8" ?>', file=code)
             print("<movie>", file=code)
-            print(" <title>" + naming_rule + "</title>", file=code)
+            print(" <title><![CDATA[" + naming_rule + "]]></title>", file=code)
             print("  <set>", file=code)
             print("  </set>", file=code)
-            print("  <studio>" + studio + "+</studio>", file=code)
+            print("  <studio><![CDATA[" + studio + "+]]></studio>", file=code)
             print("  <year>" + year + "</year>", file=code)
-            print("  <outline>" + outline + "</outline>", file=code)
-            print("  <plot>" + outline + "</plot>", file=code)
+            print("  <outline><![CDATA[" + outline + "]]></outline>", file=code)
+            print("  <plot><![CDATA[" + outline + "]]></plot>", file=code)
             print("  <runtime>" + str(runtime).replace(" ", "") + "</runtime>", file=code)
-            print("  <director>" + director + "</director>", file=code)
+            print("  <director><![CDATA[" + director + "]]></director>", file=code)
             print("  <poster>" + number + c_word + "-poster.jpg</poster>", file=code)
             print("  <thumb>" + number + c_word + "-thumb.jpg</thumb>", file=code)
             print("  <fanart>" + number + c_word + '-fanart.jpg' + "</fanart>", file=code)
             try:
                 for key in actor_list:
                     print("  <actor>", file=code)
-                    print("   <name>" + key + "</name>", file=code)
+                    print("   <name><![CDATA[" + key + "]]></name>", file=code)
                     print("  </actor>", file=code)
             except:
                 aaaa = ''
-            print("  <maker>" + studio + "</maker>", file=code)
-            print("  <label>" + label + "</label>", file=code)
+            print("  <maker><![CDATA[" + studio + "]]></maker>", file=code)
+            print("  <label><![CDATA[" + label + "]]></label>", file=code)
             if cn_sub == '1':
                 print("  <tag>中文字幕</tag>", file=code)
             if liuchu == '流出':
                 print("  <tag>流出</tag>", file=code)
             try:
                 for i in tag:
-                    print("  <tag>" + i + "</tag>", file=code)
-                print("  <tag>" + series + "</tag>", file=code)
+                    print("  <tag><![CDATA[" + i + "]]></tag>", file=code)
+                print("  <tag><![CDATA[" + series + "]]></tag>", file=code)
             except:
                 aaaaa = ''
             try:
                 for i in tag:
-                    print("  <genre>" + i + "</genre>", file=code)
+                    print("  <genre><![CDATA[" + i + "]]></genre>", file=code)
             except:
                 aaaaaaaa = ''
             if cn_sub == '1':
                 print("  <genre>中文字幕</genre>", file=code)
             print("  <num>" + number + "</num>", file=code)
             print("  <premiered>" + release + "</premiered>", file=code)
-            print("  <cover>" + cover + "</cover>", file=code)
-            print("  <website>" + website + "</website>", file=code)
+            print("  <cover><![CDATA[" + cover + "]]></cover>", file=code)
+            print("  <website><![CDATA[" + website + "]]></website>", file=code)
             print("</movie>", file=code)
             print("[+]Wrote!            " + path + "/" + number + part + c_word + ".nfo")
     except IOError as e:
@@ -449,7 +481,18 @@ def core_main(file_path, number_th, conf: config.Config):
 
     filepath = file_path  # 影片的路径
     number = number_th
-    json_data = get_data_from_json(number, filepath, conf)  # 定义番号
+
+    # =======================================================================判断-C,-CD后缀
+    if '-CD' in filepath or '-cd' in filepath:
+        multi_part = 1
+        part = get_part(filepath, conf.failed_folder())
+    if '-c.' in filepath or '-C.' in filepath or '中文' in filepath or '字幕' in filepath:
+        cn_sub = '1'
+        c_word = '-C'  # 中文字幕影片后缀
+    if '流出' in filepath:
+        liuchu = '流出'
+
+    json_data = get_data_from_json(number, filepath, conf, cn_sub)  # 定义番号
 
     # Return if blank dict returned (data not found)
     if not json_data:
@@ -464,15 +507,6 @@ def core_main(file_path, number_th, conf: config.Config):
         number = json_data["number"]
     imagecut = json_data['imagecut']
     tag = json_data['tag']
-    # =======================================================================判断-C,-CD后缀
-    if '-CD' in filepath or '-cd' in filepath:
-        multi_part = 1
-        part = get_part(filepath, conf.failed_folder())
-    if '-c.' in filepath or '-C.' in filepath or '中文' in filepath or '字幕' in filepath:
-        cn_sub = '1'
-        c_word = '-C'  # 中文字幕影片后缀
-    if '流出' in filepath:
-        liuchu = '流出'
 
     # 创建输出失败目录
     CreatFailedFolder(conf.failed_folder())
@@ -491,21 +525,23 @@ def core_main(file_path, number_th, conf: config.Config):
         if multi_part == 1:
             number += part  # 这时number会被附加上CD1后缀
 
-        # 检查小封面, 如果image cut为3，则下载小封面
-        if imagecut == 3:
-            small_cover_check(path, number, json_data['cover_small'], c_word, conf, filepath, conf.failed_folder())
+        if multi_part != 1 or (multi_part == 1 and (part == '-cd1' or part == '-CD1')):
+            # 检查小封面, 如果image cut为3，则下载小封面
+            if imagecut == 3:
+                small_cover_check(path, number, json_data['cover_small'], c_word, conf, filepath, conf.failed_folder())
 
-        # creatFolder会返回番号路径
-        image_download(json_data['cover'], number, c_word, path, conf, filepath, conf.failed_folder())
+            # creatFolder会返回番号路径
+            image_download(json_data['cover'], number, c_word, path, conf, filepath, conf.failed_folder())
 
-        # 裁剪图
-        cutImage(imagecut, path, number, c_word)
+            # 裁剪图
+            cutImage(imagecut, path, number, c_word)
 
-        # 打印文件
-        print_files(path, c_word, json_data['naming_rule'], part, cn_sub, json_data, filepath, conf.failed_folder(), tag, json_data['actor_list'], liuchu)
+            # 打印文件
+            print_files(path, c_word, json_data['naming_rule'], part, cn_sub, json_data, filepath, conf.failed_folder(), tag, json_data['actor_list'], liuchu)
 
         # 移动文件
         paste_file_to_folder(filepath, path, number, c_word, conf)
+
     elif conf.main_mode() == 2:
         # 移动文件
         paste_file_to_folder_mode2(filepath, path, multi_part, number, part, c_word, conf)

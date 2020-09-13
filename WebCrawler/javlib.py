@@ -2,43 +2,111 @@ import sys
 sys.path.append('../')
 import json
 import bs4
+import re
 from bs4 import BeautifulSoup
 from lxml import html
 from http.cookies import SimpleCookie
-
+from WebCrawler import fanza
+from lxml import etree
 from ADC_function import get_javlib_cookie, get_html
 
+def getCID(lx):
+    string = get_from_xpath(lx, '//*[@id="video_jacket_img"]/@src')
+    result = re.search('.+/(.+)pl.jpg', string, flags=0).group(1)
+    return result
+
+def getOutline(htmlcode):
+    html = etree.fromstring(htmlcode, etree.HTMLParser())
+    try:
+        result = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
+        return result
+    except:
+        return ''
+
+def get_link_count(lx):
+    t = lx.xpath('/html/body/div[3]/div[2]/div[2]/div/div')
+    return len(t)
+
+def get_link(lx, i):
+    id = get_from_xpath(lx, '/html/body/div[3]/div[2]/div[2]/div/div['+str(i)+']/a/div[1]/text()')
+    href = get_from_xpath(lx, '/html/body/div[3]/div[2]/div[2]/div/div['+str(i)+']/a/@href').strip('.')
+    title = get_from_xpath(lx, '/html/body/div[3]/div[2]/div[2]/div/div['+str(i)+']/a/div[2]/text()')
+
+    return id, href, title
 
 def main(number: str):
-    raw_cookies, user_agent = get_javlib_cookie()
+    number = number.upper()
+    #raw_cookies, user_agent = get_javlib_cookie()
 
     # Blank cookies mean javlib site return error
-    if not raw_cookies:
-        return json.dumps({}, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ':'))
+    #if not raw_cookies:
+    #    return json.dumps({}, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ':'))
 
     # Manually construct a dictionary
-    s_cookie = SimpleCookie()
-    s_cookie.load(raw_cookies)
-    cookies = {}
-    for key, morsel in s_cookie.items():
-        cookies[key] = morsel.value
+    #s_cookie = SimpleCookie()
+    #s_cookie.load(raw_cookies)
+    #cookies = {}
+    #for key, morsel in s_cookie.items():
+    #    cookies[key] = morsel.value
 
     # Scraping
     result = get_html(
-        "http://www.javlibrary.com/cn/vl_searchbyid.php?keyword={}".format(number),
-        cookies=cookies,
-        ua=user_agent,
+        "http://www.javlibrary.com/tw/vl_searchbyid.php?keyword={}".format(number),
+        #cookies=cookies,
+        #ua=user_agent,
         return_type="object"
     )
     soup = BeautifulSoup(result.text, "html.parser")
     lx = html.fromstring(str(soup))
+
+    multiLabel = get_from_xpath(lx, '//*[@id="rightcolumn"]/div[1]/text()')
+    if multiLabel.find('識別碼搜尋結果') > 0:
+        links = []
+        titles = []
+
+        for i in range(1, get_link_count(lx)+1):
+            id, href, title = get_link(lx, i)
+            if id.upper() == number:
+                links.append('http://www.javlibrary.com/tw'+href)
+                titles.append(title)
+
+        link = ''
+
+        if len(links) > 1:
+            for i, link in enumerate(links):
+                print(str(i+1)+": "+titles[i])
+                print(link)
+
+            index = int(input("input index: "))-1
+
+            if index < 0 or index >= len(links):
+                raise ValueError("out of range")
+
+            link = links[index]
+        else:
+            link = links[0]
+
+        if link == '':
+            raise ValueError("no match")
+
+        result = get_html(
+            link,
+            return_type="object"
+        )
+        soup = BeautifulSoup(result.text, "html.parser")
+        lx = html.fromstring(str(soup))
+
+    try:
+        dww_htmlcode = fanza.main_htmlcode(getCID(lx))
+    except:
+        dww_htmlcode = ''
 
     if "/?v=jav" in result.url:
         dic = {
             "title": get_title(lx, soup),
             "studio": get_table_el_single_anchor(soup, "video_maker"),
             "year": get_table_el_td(soup, "video_date")[:4],
-            "outline": "",
+            "outline": getOutline(dww_htmlcode),
             "director": get_table_el_single_anchor(soup, "video_director"),
             "cover": get_cover(lx),
             "imagecut": 1,
@@ -82,7 +150,6 @@ def get_table_el_td(soup: BeautifulSoup, tag_id: str) -> str:
     tags = soup.find(id=tag_id).find_all("td", class_="text")
 
     return process(tags)
-
 
 def process(tags: bs4.element.ResultSet) -> str:
     values = []

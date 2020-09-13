@@ -23,12 +23,8 @@ def getActorPhoto(htmlcode): #//*[@id="star_qdt"]/li/a/img
     return d
 def getTitle(htmlcode):  #获取标题
     doc = pq(htmlcode)
-    title=str(doc('div.container h3').text()).replace(' ','-')
-    try:
-        title2 = re.sub('n\d+-','',title)
-        return title2
-    except:
-        return title
+    title=str(doc('div.container h3').text())
+    return title
 def getStudio(htmlcode): #获取厂商
     html = etree.fromstring(htmlcode,etree.HTMLParser())
     result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[5]/a/text()')).strip(" ['']")
@@ -67,8 +63,8 @@ def getDirector(htmlcode): #获取导演
 def getCID(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     #print(htmlcode)
-    string = html.xpath("//a[contains(@class,'sample-box')][1]/@href")[0].replace('https://pics.dmm.co.jp/digital/video/','')
-    result = re.sub('/.*?.jpg','',string)
+    string = html.xpath("//a[contains(@class,'sample-box')][1]/@href")[0]
+    result = re.search('.+/(.+)pl.jpg', string, flags=0).group(1)
     return result
 def getOutline(htmlcode):  #获取演员
     html = etree.fromstring(htmlcode, etree.HTMLParser())
@@ -94,69 +90,35 @@ def getTag(htmlcode):  # 获取演员
         tag.append(i.get_text())
     return tag
 
-def main_uncensored(number):
-    htmlcode = get_html('https://www.javbus.com/' + number)
-    if getTitle(htmlcode) == '':
-        htmlcode = get_html('https://www.javbus.com/' + number.replace('-','_'))
-    try:
-        dww_htmlcode = fanza.main_htmlcode(getCID(htmlcode))
-    except:
-        dww_htmlcode = ''
-    dic = {
-        'title': str(re.sub('\w+-\d+-','',getTitle(htmlcode))).replace(getNum(htmlcode)+'-',''),
-        'studio': getStudio(htmlcode),
-        'year': getYear(htmlcode),
-        'outline': getOutline(dww_htmlcode),
-        'runtime': getRuntime(htmlcode),
-        'director': getDirector(htmlcode),
-        'actor': getActor(htmlcode),
-        'release': getRelease(htmlcode),
-        'number': getNum(htmlcode),
-        'cover': getCover(htmlcode),
-        'tag': getTag(htmlcode),
-        'label': getSerise(htmlcode),
-        'imagecut': 0,
-        'actor_photo': '',
-        'website': 'https://www.javbus.com/' + number,
-        'source': 'javbus.py',
-        'series': getSerise(htmlcode),
-    }
-    js = json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ':'), )  # .encode('UTF-8')
-    return js
-
-
 def main(number):
     try:
+        htmlcode = get_html('https://www.javbus.com/' + number)
         try:
-            htmlcode = get_html('https://www.javbus.com/' + number)
-            try:
-                dww_htmlcode = fanza.main_htmlcode(getCID(htmlcode))
-            except:
-                dww_htmlcode = ''
-            dic = {
-                'title': str(re.sub('\w+-\d+-', '', getTitle(htmlcode))),
-                'studio': getStudio(htmlcode),
-                'year': str(re.search('\d{4}', getYear(htmlcode)).group()),
-                'outline': getOutline(dww_htmlcode),
-                'runtime': getRuntime(htmlcode),
-                'director': getDirector(htmlcode),
-                'actor': getActor(htmlcode),
-                'release': getRelease(htmlcode),
-                'number': getNum(htmlcode),
-                'cover': getCover(htmlcode),
-                'imagecut': 1,
-                'tag': getTag(htmlcode),
-                'label': getSerise(htmlcode),
-                'actor_photo': getActorPhoto(htmlcode),
-                'website': 'https://www.javbus.com/' + number,
-                'source': 'javbus.py',
-                'series': getSerise(htmlcode),
-            }
-            js = json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=4,
-                            separators=(',', ':'), )  # .encode('UTF-8')
-            return js
+            dww_htmlcode = fanza.main_htmlcode(getCID(htmlcode))
         except:
-            return main_uncensored(number)
+            dww_htmlcode = ''
+        dic = {
+            'title': getTitle(htmlcode).replace(getNum(htmlcode),'').strip(),
+            'studio': getStudio(htmlcode),
+            'year': str(re.search('\d{4}', getYear(htmlcode)).group()),
+            'outline': getOutline(dww_htmlcode),
+            'runtime': getRuntime(htmlcode),
+            'director': getDirector(htmlcode),
+            'actor': getActor(htmlcode),
+            'release': getRelease(htmlcode),
+            'number': getNum(htmlcode),
+            'cover': getCover(htmlcode),
+            'imagecut': 1,
+            'tag': getTag(htmlcode),
+            'label': getSerise(htmlcode),
+            'actor_photo': getActorPhoto(htmlcode),
+            'website': 'https://www.javbus.com/' + number,
+            'source': 'javbus.py',
+            'series': getSerise(htmlcode),
+        }
+        js = json.dumps(dic, ensure_ascii=False, sort_keys=True, indent=4,
+                        separators=(',', ':'), )  # .encode('UTF-8')
+        return js
     except:
         data = {
             "title": "",

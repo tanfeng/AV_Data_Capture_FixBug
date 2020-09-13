@@ -18,9 +18,9 @@ def getTitle(a):
         return ''
 def getActor(a): #//*[@id="center_column"]/div[2]/div[1]/div/table/tbody/tr[1]/td/text()
     html = etree.fromstring(a, etree.HTMLParser()) #//table/tr[1]/td[1]/text()
-    result1=str(html.xpath('//th[contains(text(),"出演：")]/../td/a/text()')).strip(" ['']").strip('\\n    ').strip('\\n')
-    result2=str(html.xpath('//th[contains(text(),"出演：")]/../td/text()')).strip(" ['']").strip('\\n    ').strip('\\n')
-    return str(result1+result2).strip('+').replace("', '",'').replace('"','').replace('/',',')
+    result1=str(html.xpath('//th[contains(text(),"出演：")]/../td/a/text()')).strip(" ['']").strip('\\n    ').strip('\\n').replace('\\n    \', \'', ",").replace('\', \'\\n\', \'', '')
+    result2=str(html.xpath('//th[contains(text(),"出演：")]/../td/text()')).strip(" ['']").strip('\\n    ').strip('\\n').replace('\\n    \', \'', ",").replace('\', \'\\n\', \'', '')
+    return str(result1+result2).strip('+').replace("', '",'').replace('"','').replace('/',',').replace(':','：')
 def getStudio(a):
     html = etree.fromstring(a, etree.HTMLParser()) #//table/tr[1]/td[1]/text()
     result1=str(html.xpath('//th[contains(text(),"メーカー：")]/../td/a/text()')).strip(" ['']").strip('\\n    ').strip('\\n')
@@ -67,6 +67,12 @@ def getTag(a):
     return str(result1 + result2).strip('+').replace("', '\\n",",").replace("', '","").replace('"','').replace(',,','').split(',')
 def getCover(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
+    t = html.xpath('//*[@id="EnlargeImage"]/@href')
+    result = str(html.xpath('//*[@id="EnlargeImage"]/@href')).strip(" ['']")
+    #                    /html/body/div[2]/article[2]/div[1]/div[1]/div/div/h2/img/@src
+    return result
+def getSmallCover(htmlcode):
+    html = etree.fromstring(htmlcode, etree.HTMLParser())
     result = str(html.xpath('//*[@id="center_column"]/div[1]/div[1]/div/div/h2/img/@src')).strip(" ['']")
     #                    /html/body/div[2]/article[2]/div[1]/div[1]/div/div/h2/img/@src
     return result
@@ -105,7 +111,8 @@ def main(number2):
         'release': getRelease(a),
         'number': getNum(a),
         'cover': getCover(htmlcode),
-        'imagecut': 0,
+        'cover_small': getSmallCover(htmlcode),
+        'imagecut': 3,
         'tag': getTag(a),
         'label':getLabel(a),
         'year': getYear(getRelease(a)),  # str(re.search('\d{4}',getRelease(a)).group()),

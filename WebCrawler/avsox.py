@@ -101,7 +101,7 @@ def main(number):
     info = str(soup.find(attrs={'class': 'row movie'}))
     dic = {
         'actor': getActor(web),
-        'title': getTitle(web).strip(getNum(web)),
+        'title': getTitle(web).replace(getNum(web),'').strip(),
         'studio': getStudio(info),
         'outline': '',#
         'runtime': getRuntime(info),

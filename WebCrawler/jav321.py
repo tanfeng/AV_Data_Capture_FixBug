@@ -85,7 +85,11 @@ def get_cover(lx: html.HtmlElement) -> str:
 
 
 def get_outline(lx: html.HtmlElement) -> str:
-    return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[3]/div/text()")[0]
+    try:
+        result=lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[3]/div/text()")[0]
+    except:
+        result=''
+    return result
 
 def get_series2(lx: html.HtmlElement) -> str:
     return lx.xpath("/html/body/div[2]/div[1]/div[1]/div[2]/div[1]/div[2]/a[11]/text()")[0]

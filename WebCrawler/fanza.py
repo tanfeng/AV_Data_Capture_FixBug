@@ -114,7 +114,20 @@ def getRelease(text):
                 )[0].lstrip("\n")
             except:
                 pass
-    return result.replace("/", "-")
+    if result == "----":
+        try:
+            result = html.xpath(
+                "//td[contains(text(),'貸出開始日：')]/following-sibling::td/a/text()"
+            )[0].lstrip("\n")
+        except:
+            try:
+                result = html.xpath(
+                    "//td[contains(text(),'貸出開始日：')]/following-sibling::td/text()"
+                )[0].lstrip("\n")
+            except:
+                pass
+
+    return result.replace("/", "-").strip()
 
 
 def getTag(text):
@@ -166,18 +179,10 @@ def getDirector(text):
 def getOutline(text):
     html = etree.fromstring(text, etree.HTMLParser())
     try:
-        result = str(html.xpath("//div[@class='mg-b20 lh4']/text()")[0]).replace(
-            "\n", ""
-        )
-        if result == "":
-            result = str(html.xpath("//div[@class='mg-b20 lh4']//p/text()")[0]).replace(
-                "\n", ""
-            )
+        result = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
+        return result
     except:
-        # (TODO) handle more edge case
-        # print(html)
-        return ""
-    return result
+        return ''
 
 
 def getSeries(text):
@@ -239,21 +244,21 @@ def main(number):
             "studio": getStudio(htmlcode),
             "outline": getOutline(htmlcode),
             "runtime": getRuntime(htmlcode),
-            "director": getDirector(htmlcode) if "anime" not in chosen_url else "",
-            "actor": getActor(htmlcode) if "anime" not in chosen_url else "",
-            "release": getRelease(htmlcode),
+            "director": getDirector(htmlcode).replace("----", '').strip() if "anime" not in chosen_url else "",
+            "actor": getActor(htmlcode).replace("----", '').strip() if "anime" not in chosen_url else "",
+            "release": getRelease(htmlcode).replace("----", '').strip(),
             "number": fanza_hinban,
             "cover": getCover(htmlcode, fanza_hinban),
             "imagecut": 1,
             "tag": getTag(htmlcode),
-            "label": getLabel(htmlcode),
+            "label": getLabel(htmlcode).replace("----", '').strip(),
             "year": getYear(
-                getRelease(htmlcode)
+                getRelease(htmlcode).replace("----", '').strip()
             ),  # str(re.search('\d{4}',getRelease(a)).group()),
             "actor_photo": "",
             "website": chosen_url,
             "source": "fanza.py",
-            "series": getSeries(htmlcode),
+            "series": getSeries(htmlcode).replace("----", '').strip(),
         }
     except:
         data = {
@@ -282,11 +287,15 @@ def main_htmlcode(number):
         "https://www.dmm.co.jp/mono/anime/-/detail/=/cid=",
         "https://www.dmm.co.jp/digital/videoc/-/detail/=/cid=",
         "https://www.dmm.co.jp/digital/nikkatsu/-/detail/=/cid=",
+        "https://www.dmm.co.jp/rental/-/detail/=/cid=",
     ]
     chosen_url = ""
     for url in fanza_urls:
         chosen_url = url + fanza_search_number
-        htmlcode = get_html(chosen_url)
+        htmlcode = get_html(
+            "https://www.dmm.co.jp/age_check/=/declared=yes/?{}".format(
+            urlencode({"rurl": chosen_url})
+        ))
         if "404 Not Found" not in htmlcode:
             break
     if "404 Not Found" in htmlcode:
