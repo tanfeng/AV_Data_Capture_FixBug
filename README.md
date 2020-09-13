@@ -1,5 +1,6 @@
-# AV Data Capture (CLI)
+# AV Data Capture EX (CLI)
 
+# 与原项目区别
 修复了原工程大量的bug
 
 CLI 版本  
