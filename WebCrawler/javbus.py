@@ -25,9 +25,16 @@ def getTitle(htmlcode):  #获取标题
     doc = pq(htmlcode)
     title=str(doc('div.container h3').text())
     return title
-def getStudio(htmlcode): #获取厂商
+def getStudio(htmlcode): #获取厂商 已修改
     html = etree.fromstring(htmlcode,etree.HTMLParser())
-    result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[5]/a/text()')).strip(" ['']")
+    # 如果记录中冇导演，厂商排在第4位
+    if '製作商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/span/text()')).strip(" ['']"):
+        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/a/text()')).strip(" ['']")
+    # 如果记录中有导演，厂商排在第5位
+    elif '製作商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[5]/span/text()')).strip(" ['']"):
+        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[5]/a/text()')).strip(" ['']")
+    else:
+        result = ''
     return result
 def getYear(htmlcode):   #获取年份
     html = etree.fromstring(htmlcode,etree.HTMLParser())
@@ -41,10 +48,10 @@ def getRelease(htmlcode): #获取出版日期
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[2]/text()')).strip(" ['']")
     return result
-def getRuntime(htmlcode): #获取分钟
-    soup = BeautifulSoup(htmlcode, 'lxml')
-    a = soup.find(text=re.compile('分鐘'))
-    return a
+def getRuntime(htmlcode): #获取分钟 已修改
+    html = etree.fromstring(htmlcode, etree.HTMLParser())
+    result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[3]/text()')).strip(" ['']分鐘")
+    return result
 def getActor(htmlcode):   #获取女优
     b=[]
     soup=BeautifulSoup(htmlcode,'lxml')
@@ -56,15 +63,18 @@ def getNum(htmlcode):     #获取番号
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[1]/span[2]/text()')).strip(" ['']")
     return result
-def getDirector(htmlcode): #获取导演
+def getDirector(htmlcode): #获取导演 已修改
     html = etree.fromstring(htmlcode, etree.HTMLParser())
-    result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/a/text()')).strip(" ['']")
+    if '導演:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/span/text()')).strip(" ['']"):
+        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/a/text()')).strip(" ['']")
+    else:
+        result = ''         # 记录中有可能没有导演数据
     return result
 def getCID(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     #print(htmlcode)
-    string = html.xpath("//a[contains(@class,'sample-box')][1]/@href")[0]
-    result = re.search('.+/(.+)pl.jpg', string, flags=0).group(1)
+    string = html.xpath("//a[contains(@class,'sample-box')][1]/@href")[0].replace('https://pics.dmm.co.jp/digital/video/','')
+    result = re.sub('/.*?.jpg','',string)
     return result
 def getOutline(htmlcode):  #获取演员
     html = etree.fromstring(htmlcode, etree.HTMLParser())
@@ -73,14 +83,18 @@ def getOutline(htmlcode):  #获取演员
         return result
     except:
         return ''
-def getSerise(htmlcode):
-    try:
-        html = etree.fromstring(htmlcode, etree.HTMLParser())
+def getSerise(htmlcode):   #获取系列 已修改
+    html = etree.fromstring(htmlcode, etree.HTMLParser())
+    # 如果记录中冇导演，系列排在第6位
+    if '發行商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[6]/span/text()')).strip(" ['']"):
+        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[6]/a/text()')).strip(" ['']")
+    # 如果记录中有导演，系列排在第7位
+    elif '發行商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[7]/span/text()')).strip(" ['']"):
         result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[7]/a/text()')).strip(" ['']")
-        return result
-    except:
-        return ''
-def getTag(htmlcode):  # 获取演员
+    else:
+        result = ''
+    return result
+def getTag(htmlcode):  # 获取标签
     tag = []
     soup = BeautifulSoup(htmlcode, 'lxml')
     a = soup.find_all(attrs={'class': 'genre'})
