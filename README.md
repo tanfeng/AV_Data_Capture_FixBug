@@ -1,7 +1,9 @@
-# AV Data Capture EX (CLI)
-
 # 与原项目区别
 修复了原工程大量的bug
+
+-------------
+
+# AV Data Capture EX (CLI)
 
 CLI 版本  
 ![](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat)
