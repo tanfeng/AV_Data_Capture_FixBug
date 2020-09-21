@@ -50,7 +50,7 @@ def getActor(htmlcode):   #获取女优
     soup=BeautifulSoup(htmlcode,'lxml')
     a=soup.find_all(attrs={'class':'star-name'})
     for i in a:
-        b.append(i.get_text())
+        b.append(i.get_text().strip())
     return b
 def getNum(htmlcode):     #获取番号
     html = etree.fromstring(htmlcode, etree.HTMLParser())
@@ -103,7 +103,7 @@ def main(number):
             'year': str(re.search('\d{4}', getYear(htmlcode)).group()),
             'outline': getOutline(dww_htmlcode),
             'runtime': getRuntime(htmlcode),
-            'director': getDirector(htmlcode),
+            'director': getDirector(htmlcode).strip(),
             'actor': getActor(htmlcode),
             'release': getRelease(htmlcode),
             'number': getNum(htmlcode),

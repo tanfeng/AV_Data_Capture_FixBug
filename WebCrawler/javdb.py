@@ -6,6 +6,7 @@ import json
 from bs4 import BeautifulSoup
 from ADC_function import *
 from WebCrawler import fanza
+from http.cookies import SimpleCookie
 import time
 import json
 # import sys
@@ -120,62 +121,75 @@ def main(number):
     try:
         number = number.upper()
 
-        correct_url = ''
-
-        # 先尝试使用ajax
-        query_result = get_html('https://javdb.com/videos/search_autocomplete.json?q='+number)
-        items = json.loads(query_result)
-
-        links = []
-        titles = []
-
-        for item in items:
-            if item['number'].upper() == number:
-                links.append('/v/'+item['uid'])
-                titles.append(item['title'])
-
-        if len(links) > 1:
-            for i, link in enumerate(links) :
-                print(str(i+1)+": "+titles[i])
-                print('https://javdb.com'+link)
-
-            index = int(input("input index: "))-1
-
-            if index < 0 or index >= len(links):
-                raise ValueError("out of range")
-
-            correct_url = links[index]
-        else:
-            correct_url = links[0]
-
-        # if correct_url == '':
-        #     query_result=""
-        #     ok=0
+        # raw_cookies, user_agent = get_javdb_cookie()
         #
-        #     for i in range(1,10):
-        #         try:
-        #             query_result = get_html('https://javdb.com/search?q=' + number + '&f=all')
-        #         except:
-        #             query_result = get_html('https://javdb4.com/search?q=' + number + '&f=all')
+        # if not raw_cookies:
+        #    return json.dumps({}, ensure_ascii=False, sort_keys=True, indent=4, separators=(',', ':'))
         #
-        #         html = etree.fromstring(query_result, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
-        # 
-        #         if str(html.xpath('/html/body/section/div/div[4]/article/div/text()')).strip(" ['']") == '':
-        #             ok=1
-        #             break
+        # s_cookie = SimpleCookie()
+        # s_cookie.load(raw_cookies)
+        # cookies = {}
+        # for key, morsel in s_cookie.items():
+        #    cookies[key] = morsel.value
         #
-        #         print("请求过于频繁，重试："+str(i))
-        #         time.sleep(15)
-        #
-        #     if ok==0:
-        #         raise ValueError("retry max")
-        #
-        #     # javdb sometime returns multiple results,
-        #     # and the first elememt maybe not the one we are looking for
-        #     # iterate all candidates and find the match one
-        #     urls = html.xpath('//*[@id="videos"]/div/div/a/@href')
-        #     ids =html.xpath('//*[@id="videos"]/div/div/a/div[contains(@class, "uid")]/text()')
-        #     correct_url = urls[ids.index(number)]
+        # correct_url = ''
+
+        time.sleep(2)
+
+        try:
+            # 先尝试使用ajax
+            query_result = get_html('https://javdb.com/videos/search_autocomplete.json?q='+number)
+
+            items = json.loads(query_result)
+
+            links = []
+            titles = []
+
+            for item in items:
+                if item['number'].upper() == number:
+                    links.append('/v/'+item['uid'])
+                    titles.append(item['title'])
+
+            if len(links) > 1:
+                for i, link in enumerate(links):
+                    print(str(i+1)+": "+titles[i])
+                    print('https://javdb.com'+link)
+
+                index = int(input("input index: "))-1
+
+                if index < 0 or index >= len(links):
+                    raise ValueError("out of range")
+
+                correct_url = links[index]
+            else:
+                correct_url = links[0]
+        except:
+            ok=0
+
+            for i in range(1,10):
+                try:
+                    query_result = get_html('https://javdb.com/search?q=' + number + '&f=all')
+                except:
+                    query_result = get_html('https://javdb4.com/search?q=' + number + '&f=all')
+
+                html = etree.fromstring(query_result, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
+
+                if str(html.xpath('/html/body/section/div/div[4]/article/div/text()')).strip(" ['']") == '':
+                    ok=1
+                    break
+
+                print("请求过于频繁，重试："+str(i))
+                time.sleep(30)
+
+            if ok==0:
+                raise ValueError("retry max")
+
+            # javdb sometime returns multiple results,
+            # and the first elememt maybe not the one we are looking for
+            # iterate all candidates and find the match one
+            urls = html.xpath('//*[@id="videos"]/div/div/a/@href')
+            ids =html.xpath('//*[@id="videos"]/div/div/a/div[contains(@class, "uid")]/text()')
+            correct_url = urls[ids.index(number)]
 
         detail_page = get_html('https://javdb.com' + correct_url)
 

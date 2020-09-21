@@ -219,6 +219,7 @@ def main(number):
         "https://www.dmm.co.jp/digital/videoc/-/detail/=/cid=",
         "https://www.dmm.co.jp/digital/nikkatsu/-/detail/=/cid=",
         "https://www.dmm.co.jp/rental/-/detail/=/cid=",
+        "https://www.dmm.co.jp/rental/ppr/-/detail/=/cid=",
     ]
     chosen_url = ""
 
@@ -288,6 +289,7 @@ def main_htmlcode(number):
         "https://www.dmm.co.jp/digital/videoc/-/detail/=/cid=",
         "https://www.dmm.co.jp/digital/nikkatsu/-/detail/=/cid=",
         "https://www.dmm.co.jp/rental/-/detail/=/cid=",
+        "https://www.dmm.co.jp/rental/ppr/-/detail/=/cid=",
     ]
     chosen_url = ""
     for url in fanza_urls:

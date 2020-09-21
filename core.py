@@ -117,17 +117,17 @@ def get_data_from_json(file_number, filepath, conf: config.Config, cn_sub):  # �
     actor_idx = 0
     for actor in tlist:
         if actor.find('(') >= 0 and actor.find(')') < 0:
-            actor_list.append(actor)
+            actor_list.append(actor.strip())
             actor_idx = len(actor_list)-1
             actor_trap = 1
         elif actor.find(')') >= 0 and actor.find('(') < 0 and actor_trap:
-            actor_list[actor_idx] += ','+actor
+            actor_list[actor_idx] += ','+actor.strip()
             actor_trap = 0
         else:
             if actor_trap:
-                actor_list[actor_idx] += ','+actor
+                actor_list[actor_idx] += ','+actor.strip()
             else:
-                actor_list.append(actor)
+                actor_list.append(actor.strip())
                 actor_idx = len(actor_list)-1
 
     release = json_data['release']
@@ -390,14 +390,26 @@ def cutImage(imagecut, path, number, c_word):
 
 
 def paste_file_to_folder(filepath, path, number, c_word, conf: config.Config):  # 文件路径，番号，后缀，要移动至的位置
-    houzhui = str(re.search('[.](AVI|RMVB|WMV|MOV|MP4|MKV|FLV|TS|WEBM|avi|rmvb|wmv|mov|mp4|mkv|flv|ts|webm)$', filepath).group())
+    houzhui = str(re.search('[.](AVI|RMVB|WMV|MOV|MP4|MKV|FLV|TS|WEBM|avi|rmvb|wmv|mov|mp4|mkv|flv|ts|webm|iso)$', filepath).group())
 
     try:
-        # 如果soft_link=1 使用软链接
-        if conf.soft_link():
-            os.symlink(filepath, path + '/' + number + c_word + houzhui)
-        else:
-            os.rename(filepath, path + '/' + number + c_word + houzhui)
+        for i in range(10):
+            try:
+                repeat = ''
+                if i != 0:
+                    repeat = '-'+str(i)
+
+                # 如果soft_link=1 使用软链接
+                if conf.soft_link():
+                    os.symlink(filepath, path + '/' + number + c_word + repeat + houzhui)
+                else:
+                    os.rename(filepath, path + '/' + number + c_word + repeat + houzhui)
+
+                break
+
+            except FileExistsError:
+                continue
+
         if os.path.exists(os.getcwd() + '/' + number + c_word + '.srt'):  # 字幕移动
             os.rename(os.getcwd() + '/' + number + c_word + '.srt', path + '/' + number + c_word + '.srt')
             print('[+]Sub moved!')
@@ -407,6 +419,7 @@ def paste_file_to_folder(filepath, path, number, c_word, conf: config.Config):  
         elif os.path.exists(os.getcwd() + '/' + number + c_word + '.sub'):
             os.rename(os.getcwd() + '/' + number + c_word + '.sub', path + '/' + number + c_word + '.sub')
             print('[+]Sub moved!')
+
     except FileExistsError:
         print('[-]File Exists! Please check your movie!')
         print('[-]move to the root folder of the program.')
@@ -419,7 +432,7 @@ def paste_file_to_folder(filepath, path, number, c_word, conf: config.Config):  
 def paste_file_to_folder_mode2(filepath, path, multi_part, number, part, c_word, conf):  # 文件路径，番号，后缀，要移动至的位置
     if multi_part == 1:
         number += part  # 这时number会被附加上CD1后缀
-    houzhui = str(re.search('[.](AVI|RMVB|WMV|MOV|MP4|MKV|FLV|TS|WEBM|avi|rmvb|wmv|mov|mp4|mkv|flv|ts|webm)$', filepath).group())
+    houzhui = str(re.search('[.](AVI|RMVB|WMV|MOV|MP4|MKV|FLV|TS|WEBM|avi|rmvb|wmv|mov|mp4|mkv|flv|ts|webm|iso)$', filepath).group())
 
     try:
         if conf.soft_link():
