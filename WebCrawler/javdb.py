@@ -199,7 +199,29 @@ def main(number):
             # iterate all candidates and find the match one
             urls = html.xpath('//*[@id="videos"]/div/div/a/@href')
             ids =html.xpath('//*[@id="videos"]/div/div/a/div[contains(@class, "uid")]/text()')
-            correct_url = urls[ids.index(number)]
+            allTitles=html.xpath('//*[@id="videos"]/div/div/a/div[contains(@class, "video-title")]/text()')
+
+            links = []
+            titles = []
+
+            for i, id in enumerate(ids):
+                if id.upper() == number:
+                    links.append(urls[i])
+                    titles.append(allTitles[i])
+
+            if len(links) > 1:
+                for i, link in enumerate(links):
+                    print(str(i+1)+": "+titles[i])
+                    print('https://javdb.com'+link)
+
+                index = int(input("input index: "))-1
+
+                if index < 0 or index >= len(links):
+                    raise ValueError("out of range")
+
+                correct_url = links[index]
+            else:
+                correct_url = links[0]
 
         detail_page = get_html('https://javdb.com' + correct_url)
 
