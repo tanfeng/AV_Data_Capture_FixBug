@@ -108,15 +108,25 @@ def getCID(htmlcode):
         string = html.xpath("//div[contains(@class, 'column-video-cover')]/a/img/@src")[0]
     except: # 2020.7.17 Repair Cover Url crawl
         string = html.xpath("//div[contains(@class, 'column-video-cover')]/img/@src")[0]
-    result = re.search('.+/(.+)pl.jpg', string, flags=0).group(1)
+    result = re.search('/([^/]+)/[^/]+\.jpg', string, flags=0).group(1)
     return result
 def getOutline(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     try:
-        result = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
-        return result
+        detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/text()")[0].replace('\n','').strip()
+        if detail == "":
+            raise ValueError("no detail")
     except:
-        return ''
+        try:
+            detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/p/text()")[0].replace('\n','').strip()
+            if detail == "":
+                raise ValueError("no detail")
+        except:
+            try:
+                detail = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
+            except:
+                detail = ''
+    return detail
 def main(number):
     try:
         number = number.upper()
@@ -134,7 +144,7 @@ def main(number):
         #
         # correct_url = ''
 
-        time.sleep(2)
+        time.sleep(3)
 
         try:
             # 先尝试使用ajax

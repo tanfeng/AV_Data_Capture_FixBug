@@ -12,16 +12,26 @@ from ADC_function import get_javlib_cookie, get_html
 
 def getCID(lx):
     string = get_from_xpath(lx, '//*[@id="video_jacket_img"]/@src')
-    result = re.search('.+/(.+)pl.jpg', string, flags=0).group(1)
+    result = re.search('/([^/]+)/[^/]+\.jpg', string, flags=0).group(1)
     return result
 
 def getOutline(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     try:
-        result = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
-        return result
+        detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/text()")[0].replace('\n','').strip()
+        if detail == "":
+            raise ValueError("no detail")
     except:
-        return ''
+        try:
+            detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/p/text()")[0].replace('\n','').strip()
+            if detail == "":
+                raise ValueError("no detail")
+        except:
+            try:
+                detail = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
+            except:
+                detail = ''
+    return detail
 
 def get_link_count(lx):
     t = lx.xpath('/html/body/div[3]/div[2]/div[2]/div/div')
@@ -114,7 +124,7 @@ def main(number: str):
             "website": result.url,
             "source": "javlib.py",
             "actor": get_table_el_multi_anchor(soup, "video_cast"),
-            "label": get_table_el_td(soup, "video_label"),
+            "label": get_table_el_single_anchor(soup, "video_label"),
             "tag": get_table_el_multi_anchor(soup, "video_genres"),
             "number": get_table_el_td(soup, "video_id"),
             "release": get_table_el_td(soup, "video_date"),

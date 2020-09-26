@@ -210,7 +210,7 @@ def get_info(json_data):  # 返回json里的数据
     cover = json_data['cover']
     website = json_data['website']
     series = json_data['series']
-    label = json_data.get('label', "")
+    label = json_data['label']
     return title, studio, year, outline, runtime, director, actor_photo, release, number, cover, website, series, label
 
 

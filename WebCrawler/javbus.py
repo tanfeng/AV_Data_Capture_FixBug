@@ -73,16 +73,26 @@ def getDirector(htmlcode): #获取导演 已修改
 def getCID(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     #print(htmlcode)
-    string = html.xpath("//a[contains(@class,'sample-box')][1]/@href")[0].replace('https://pics.dmm.co.jp/digital/video/','')
-    result = re.sub('/.*?.jpg','',string)
+    string = html.xpath("//a[contains(@class,'sample-box')][1]/@href")[0]
+    result = re.search('/([^/]+)/[^/]+\.jpg', string, flags=0).group(1)
     return result
-def getOutline(htmlcode):  #获取演员
+def getOutline(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     try:
-        result = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','')
-        return result
+        detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/text()")[0].replace('\n','').strip()
+        if detail == "":
+            raise ValueError("no detail")
     except:
-        return ''
+        try:
+            detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/p/text()")[0].replace('\n','').strip()
+            if detail == "":
+                raise ValueError("no detail")
+        except:
+            try:
+                detail = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
+            except:
+                detail = ''
+    return detail
 def getSerise(htmlcode):   #获取系列 已修改
     html = etree.fromstring(htmlcode, etree.HTMLParser())
     # 如果记录中冇导演，系列排在第6位

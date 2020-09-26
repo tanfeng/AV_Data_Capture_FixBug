@@ -301,7 +301,17 @@ def main_htmlcode(number):
         if "404 Not Found" not in htmlcode:
             break
     if "404 Not Found" in htmlcode:
-        return json.dumps({"title": "",})
+        newNumber = fanza_search_number.strip("dod").strip("so")
+        for url in fanza_urls:
+            chosen_url = url + newNumber
+            htmlcode = get_html(
+                "https://www.dmm.co.jp/age_check/=/declared=yes/?{}".format(
+                    urlencode({"rurl": chosen_url})
+                ))
+            if "404 Not Found" not in htmlcode:
+                break
+        if "404 Not Found" in htmlcode:
+            return json.dumps({"title": "",})
     return htmlcode
 
 
