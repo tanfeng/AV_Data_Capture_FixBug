@@ -68,25 +68,25 @@ def get_data_from_json(file_number, filepath, conf: config.Config, cn_sub):  # �
     if "avsox" in sources and (re.match(r"^\d{5,}", file_number) or
         "HEYZO" in file_number or "heyzo" in file_number or "Heyzo" in file_number
     ):
-        if conf.debug() == True:
-            print('[+]select avsox')
+        # if conf.debug() == True:
+        #     print('[+]select avsox')
         sources.insert(0, sources.pop(sources.index("avsox")))
-    elif "fanza" in sources and (re.match(r"\d+\D+", file_number) or
+    elif "mgstage" in sources and (re.match(r"\d+\D+", file_number) or
         "siro" in file_number or "SIRO" in file_number or "Siro" in file_number
     ):
-        if conf.debug() == True:
-            print('[+]select fanza')
-        sources.insert(0, sources.pop(sources.index("fanza")))
+        # if conf.debug() == True:
+            # print('[+]select fanza')
+        sources.insert(0, sources.pop(sources.index("mgstage")))
     elif "fc2" in sources and ("fc2" in file_number or "FC2" in file_number
     ):
-        if conf.debug() == True:
-            print('[+]select fc2')
+        # if conf.debug() == True:
+        #     print('[+]select fc2')
         sources.insert(0, sources.pop(sources.index("fc2")))
     elif "dlsite" in sources and (
         "RJ" in file_number or "rj" in file_number or "VJ" in file_number or "vj" in file_number
     ):
-        if conf.debug() == True:
-            print('[+]select dlsite')
+        # if conf.debug() == True:
+        #     print('[+]select dlsite')
         sources.insert(0, sources.pop(sources.index("dlsite")))
 
     json_data = {}
@@ -171,6 +171,43 @@ def get_data_from_json(file_number, filepath, conf: config.Config, cn_sub):  # �
         cover_small = tmpArr[0].strip('\"').strip('\'')
     # ====================处理异常字符 END================== #\/:*?"<>|
 
+    # ===  替换Studio片假名
+    studio = studio.replace('アイエナジー','Energy')
+    studio = studio.replace('アイデアポケット','Idea Pocket')
+    studio = studio.replace('アキノリ','AKNR')
+    studio = studio.replace('アタッカーズ','Attackers')
+    studio = re.sub('アパッチ.*','Apache',studio)
+    studio = studio.replace('アマチュアインディーズ','SOD')
+    studio = studio.replace('アリスJAPAN','Alice Japan')
+    studio = studio.replace('オーロラプロジェクト・アネックス','Aurora Project Annex')
+    studio = studio.replace('クリスタル映像','Crystal 映像')
+    studio = studio.replace('グローリークエスト','Glory Quest')
+    studio = studio.replace('ダスッ！','DAS！')
+    studio = studio.replace('ディープス','DEEP’s')
+    studio = studio.replace('ドグマ','Dogma')
+    studio = studio.replace('プレステージ','PRESTIGE')
+    studio = studio.replace('ムーディーズ','MOODYZ')
+    studio = studio.replace('メディアステーション','宇宙企画')
+    studio = studio.replace('ワンズファクトリー','WANZ FACTORY')
+    studio = studio.replace('エスワン ナンバーワンスタイル','S1')
+    studio = studio.replace('エスワンナンバーワンスタイル','S1')
+    studio = studio.replace('SODクリエイト','SOD')
+    studio = studio.replace('サディスティックヴィレッジ','SOD')
+    studio = studio.replace('V＆Rプロダクツ','V＆R PRODUCE')
+    studio = studio.replace('V＆RPRODUCE','V＆R PRODUCE')
+    studio = studio.replace('レアルワークス','Real Works')
+    studio = studio.replace('マックスエー','MAX-A')
+    studio = studio.replace('ピーターズMAX','PETERS MAX')
+    studio = studio.replace('プレミアム','PREMIUM')
+    studio = studio.replace('ナチュラルハイ','NATURAL HIGH')
+    studio = studio.replace('マキシング','MAXING')
+    studio = studio.replace('エムズビデオグループ','M’s Video Group')
+    studio = studio.replace('ミニマム','Minimum')
+    studio = studio.replace('ワープエンタテインメント','WAAP Entertainment')
+    studio = re.sub('.*/妄想族','妄想族',studio)
+    studio = studio.replace('/',' ')
+    # ===  替换Studio片假名 END
+    
     location_rule = eval(conf.location_rule())
 
     if cn_sub == '1':
@@ -419,7 +456,6 @@ def paste_file_to_folder(filepath, path, number, c_word, conf: config.Config):  
         elif os.path.exists(os.getcwd() + '/' + number + c_word + '.sub'):
             os.rename(os.getcwd() + '/' + number + c_word + '.sub', path + '/' + number + c_word + '.sub')
             print('[+]Sub moved!')
-
     except FileExistsError:
         print('[-]File Exists! Please check your movie!')
         print('[-]move to the root folder of the program.')
@@ -473,12 +509,13 @@ def debug_print(data: json):
     try:
         print("[+] ---Debug info---")
         for i, v in data.items():
-            if i == "outline":
-                print("[+]  -", i, "    :", len(v), "characters")
+            if i == 'outline':
+                print('[+]  -', i, '    :', len(v), 'characters')
                 continue
-            if i == "actor_photo" or i == "year":
+            if i == 'actor_photo' or i == 'year':
                 continue
-            print("[+]  -", "%-11s" % i, ":", v)
+            print('[+]  -', "%-11s" % i, ':', v)
+
         print("[+] ---Debug info---")
     except:
         pass

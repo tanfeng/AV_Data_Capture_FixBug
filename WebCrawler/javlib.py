@@ -161,6 +161,7 @@ def get_table_el_td(soup: BeautifulSoup, tag_id: str) -> str:
 
     return process(tags)
 
+
 def process(tags: bs4.element.ResultSet) -> str:
     values = []
     for tag in tags:

@@ -179,10 +179,20 @@ def getDirector(text):
 def getOutline(text):
     html = etree.fromstring(text, etree.HTMLParser())
     try:
-        result = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
-        return result
+        detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/text()")[0].replace('\n','').strip()
+        if detail == "":
+            raise ValueError("no detail")
     except:
-        return ''
+        try:
+            detail = html.xpath("//div[contains(@class,'mg-b20 lh4')]/p/text()")[0].replace('\n','').strip()
+            if detail == "":
+                raise ValueError("no detail")
+        except:
+            try:
+                detail = html.xpath("string(//div[contains(@class,'mg-b20 lh4')])").replace('\n','').strip()
+            except:
+                detail = ''
+    return detail
 
 
 def getSeries(text):
