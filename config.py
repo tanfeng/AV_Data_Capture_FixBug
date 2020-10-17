@@ -33,6 +33,8 @@ class Config:
         return self.conf.getboolean("common", "failed_move")
     def auto_exit(self) -> bool:
         return self.conf.getboolean("common", "auto_exit")
+    def transalte_to_sc(self) -> bool:
+        return self.conf.getboolean("common", "transalte_to_sc")
 
     def proxy(self) -> [str, int, int, str]:
         try:
@@ -50,6 +52,15 @@ class Config:
 
     def location_rule(self) -> str:
         return self.conf.get("Name_Rule", "location_rule")
+    
+    def max_title_len(self) -> int:
+        """
+        Maximum title length
+        """
+        try:
+            return self.conf.getint("Name_Rule", "max_title_len")
+        except:
+            return 50
 
     def update_check(self) -> bool:
         try:
@@ -87,10 +98,11 @@ class Config:
         conf.set(sec1, "soft_link", "0")
         conf.set(sec1, "failed_move", "1")
         conf.set(sec1, "auto_exit", "0")
+        conf.set(sec1, "transalte_to_sc", "1")
 
         sec2 = "proxy"
         conf.add_section(sec2)
-        conf.set(sec2, "proxy", "127.0.0.1:1080")
+        conf.set(sec2, "proxy", "")
         conf.set(sec2, "timeout", "10")
         conf.set(sec2, "retry", "3")
         conf.set(sec2, "type", "socks5")
@@ -99,6 +111,7 @@ class Config:
         conf.add_section(sec3)
         conf.set(sec3, "location_rule", "actor + '/' + number")
         conf.set(sec3, "naming_rule", "number + '-' + title")
+        conf.set(sec3, "max_title_len", "50")
 
         sec4 = "update"
         conf.add_section(sec4)

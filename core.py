@@ -10,7 +10,7 @@ from ADC_function import *
 # =========website========
 from WebCrawler import avsox
 from WebCrawler import fanza
-from WebCrawler import fc2fans_club
+from WebCrawler import fc2
 from WebCrawler import jav321
 from WebCrawler import javbus
 from WebCrawler import javdb
@@ -44,12 +44,12 @@ def CreatFailedFolder(failed_folder):
 
 def get_data_from_json(file_number, filepath, conf: config.Config, cn_sub):  # 从JSON返回元数据
     """
-    iterate through all services and fetch the data
+    iterate through all services and fetch the data 
     """
 
     func_mapping = {
         "avsox": avsox.main,
-        "fc2": fc2fans_club.main,
+        "fc2": fc2.main,
         "fanza": fanza.main,
         "javdb": javdb.main,
         "javbus": javbus.main,
@@ -204,6 +204,7 @@ def get_data_from_json(file_number, filepath, conf: config.Config, cn_sub):  # �
     studio = studio.replace('エムズビデオグループ','M’s Video Group')
     studio = studio.replace('ミニマム','Minimum')
     studio = studio.replace('ワープエンタテインメント','WAAP Entertainment')
+    studio = studio.replace('アリーナエンターテインメント', 'Arena Entertainment')
     studio = re.sub('.*/妄想族','妄想族',studio)
     studio = studio.replace('/',' ')
     # ===  替换Studio片假名 END
@@ -218,11 +219,14 @@ def get_data_from_json(file_number, filepath, conf: config.Config, cn_sub):  # �
         if 'actor' in conf.location_rule() and len(actor) > 100:
             print(conf.location_rule())
             location_rule = eval(conf.location_rule().replace("actor","'多人作品'"))
-        if 'title' in conf.location_rule() and len(title) > 100:
-            location_rule = eval(conf.location_rule().replace("title",'number'))
+        maxlen = conf.max_title_len()
+        if 'title' in conf.location_rule() and len(title) > maxlen:
+            shorttitle = title[0:maxlen]
+            location_rule = location_rule.replace(title, shorttitle)
 
     # 返回处理后的json_data
     json_data['title'] = title
+    json_data['studio'] = studio
     json_data['actor'] = actor
     json_data['release'] = release
     json_data['cover_small'] = cover_small
@@ -371,7 +375,7 @@ def print_files(path, c_word, naming_rule, part, cn_sub, json_data, filepath, fa
                     print("   <name><![CDATA[" + key + "]]></name>", file=code)
                     print("  </actor>", file=code)
             except:
-                aaaa = ''
+                pass
             print("  <maker><![CDATA[" + studio + "]]></maker>", file=code)
             print("  <label><![CDATA[" + label + "]]></label>", file=code)
             if cn_sub == '1':
@@ -381,14 +385,14 @@ def print_files(path, c_word, naming_rule, part, cn_sub, json_data, filepath, fa
             try:
                 for i in tag:
                     print("  <tag><![CDATA[" + i + "]]></tag>", file=code)
-                print("  <tag><![CDATA[" + series + "]]></tag>", file=code)
+                #print("  <tag><![CDATA[" + series + "]]></tag>", file=code)
             except:
-                aaaaa = ''
+                pass
             try:
                 for i in tag:
                     print("  <genre><![CDATA[" + i + "]]></genre>", file=code)
             except:
-                aaaaaaaa = ''
+                pass
             if cn_sub == '1':
                 print("  <genre>中文字幕</genre>", file=code)
             print("  <num>" + number + "</num>", file=code)

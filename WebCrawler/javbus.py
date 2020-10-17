@@ -8,7 +8,6 @@ import json
 from ADC_function import *
 from WebCrawler import fanza
 
-
 def getActorPhoto(htmlcode): #//*[@id="star_qdt"]/li/a/img
     soup = BeautifulSoup(htmlcode, 'lxml')
     a = soup.find_all(attrs={'class': 'star-name'})
@@ -27,14 +26,14 @@ def getTitle(htmlcode):  #获取标题
     return title
 def getStudio(htmlcode): #获取厂商 已修改
     html = etree.fromstring(htmlcode,etree.HTMLParser())
-    # 如果记录中冇导演，厂商排在第4位
-    if '製作商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/span/text()')).strip(" ['']"):
-        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/a/text()')).strip(" ['']")
-    # 如果记录中有导演，厂商排在第5位
-    elif '製作商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[5]/span/text()')).strip(" ['']"):
-        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[5]/a/text()')).strip(" ['']")
-    else:
-        result = ''
+    result = ''
+    try:
+        for i in range (4, 10):
+            if '製作商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p['+str(i)+']/span/text()')).strip(" ['']"):
+                result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p['+str(i)+']/a/text()')).strip(" ['']")
+                break
+    except:
+        pass
     return result
 def getYear(htmlcode):   #获取年份
     html = etree.fromstring(htmlcode,etree.HTMLParser())
@@ -65,10 +64,14 @@ def getNum(htmlcode):     #获取番号
     return result
 def getDirector(htmlcode): #获取导演 已修改
     html = etree.fromstring(htmlcode, etree.HTMLParser())
-    if '導演:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/span/text()')).strip(" ['']"):
-        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[4]/a/text()')).strip(" ['']")
-    else:
-        result = ''         # 记录中有可能没有导演数据
+    result = ''
+    try:
+        for i in range (4, 10):
+            if '導演:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p['+str(i)+']/span/text()')).strip(" ['']"):
+                result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p['+str(i)+']/a/text()')).strip(" ['']")
+                break
+    except:
+        pass
     return result
 def getCID(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
@@ -95,14 +98,14 @@ def getOutline(htmlcode):
     return detail
 def getSerise(htmlcode):   #获取系列 已修改
     html = etree.fromstring(htmlcode, etree.HTMLParser())
-    # 如果记录中冇导演，系列排在第6位
-    if '發行商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[6]/span/text()')).strip(" ['']"):
-        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[6]/a/text()')).strip(" ['']")
-    # 如果记录中有导演，系列排在第7位
-    elif '發行商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[7]/span/text()')).strip(" ['']"):
-        result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p[7]/a/text()')).strip(" ['']")
-    else:
-        result = ''
+    result = ''
+    try:
+        for i in range (4, 10):
+            if '發行商:' == str(html.xpath('/html/body/div[5]/div[1]/div[2]/p['+str(i)+']/span/text()')).strip(" ['']"):
+                result = str(html.xpath('/html/body/div[5]/div[1]/div[2]/p['+str(i)+']/a/text()')).strip(" ['']")
+                break
+    except:
+        pass
     return result
 def getTag(htmlcode):  # 获取标签
     tag = []
@@ -111,7 +114,7 @@ def getTag(htmlcode):  # 获取标签
     for i in a:
         if 'onmouseout' in str(i):
             continue
-        tag.append(i.get_text())
+        tag.append(translateTag_to_sc(i.get_text()))
     return tag
 
 def main(number):
