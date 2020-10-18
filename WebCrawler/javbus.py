@@ -127,7 +127,41 @@ def isUnCensored(htmlcode):
     return 0
 def main(number):
     try:
-        htmlcode = get_html('https://www.javbus.com/' + number)
+        number = number.upper()
+
+        htmlMultiText = get_html('https://www.javbus.com/search/' + number + '&type=1', cookies={'existmag':'all'})
+        htmlMulti = etree.fromstring(htmlMultiText, etree.HTMLParser())
+
+        links = htmlMulti.xpath('//*[@id="waterfall"]/div/a/@href')
+        titles = htmlMulti.xpath('//*[@id="waterfall"]/div/a/div/span/text()[1]')
+        ids = htmlMulti.xpath('//*[@id="waterfall"]/div/a/div/span/date[1]/text()[1]')
+
+        movieList = []
+        for i, e in enumerate(links):
+            if str(ids[i]).upper() == number:
+                movie = {'link':str(links[i]), 'title':str(titles[i]), 'id':str(ids[i])}
+                movieList.append(movie)
+
+        index = 0
+
+        if len(movieList) <= 0:
+            raise ValueError("no movie")
+        elif len(movieList) >= 2:
+            for i, link in enumerate(movieList):
+                print(str(i+1)+": "+movieList[i]['title'])
+                print(movieList[i]['link'])
+
+            index = int(input("input index: "))-1
+
+        if index < 0 or index >= len(movieList):
+            raise ValueError("out of range")
+
+        link = movieList[index]['link']
+
+        if link == '':
+            raise ValueError("no match")
+
+        htmlcode = get_html(link)
 
         if isUnCensored(htmlcode) == 1:
             raise ValueError("unsupport")
