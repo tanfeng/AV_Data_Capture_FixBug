@@ -72,7 +72,10 @@ def getTag(a):  # 获取演员
     a = soup.find_all(attrs={'class': 'genre'})
     d = []
     for i in a:
-        d.append(i.get_text())
+        try:
+            d.append(translateTag_to_sc(i.get_text()))
+        except:
+            pass
     return d
 def getSeries(htmlcode):
     try:
@@ -109,8 +112,7 @@ def main(number):
         'release': getRelease(info),
         'number': getNum(info),
         'cover': getCover(web),
-        'cover_small': getCover_small(a),
-        'imagecut': 3,
+        'imagecut': 1,
         'tag': getTag(web),
         'label': getLabel(info),
         'year': getYear(getRelease(info)),  # str(re.search('\d{4}',getRelease(a)).group()),

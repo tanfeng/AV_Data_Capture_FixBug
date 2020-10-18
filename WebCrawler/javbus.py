@@ -116,10 +116,22 @@ def getTag(htmlcode):  # 获取标签
             continue
         tag.append(translateTag_to_sc(i.get_text()))
     return tag
-
+def isUnCensored(htmlcode):
+    html = etree.fromstring(htmlcode, etree.HTMLParser())
+    try:
+        text = html.xpath('//*[@id="navbar"]/ul[1]/li[@class="active"]/a/text()')[0]
+        if text == '無碼':
+            return 1
+    except:
+        pass
+    return 0
 def main(number):
     try:
         htmlcode = get_html('https://www.javbus.com/' + number)
+
+        if isUnCensored(htmlcode) == 1:
+            raise ValueError("unsupport")
+
         try:
             dww_htmlcode = fanza.main_htmlcode(getCID(htmlcode))
         except:
