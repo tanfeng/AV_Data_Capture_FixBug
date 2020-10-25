@@ -76,6 +76,7 @@ def getTag(a):  # 获取演员
             d.append(translateTag_to_sc(i.get_text()))
         except:
             pass
+    d.append('无马赛克')
     return d
 def getSeries(htmlcode):
     try:
@@ -86,20 +87,44 @@ def getSeries(htmlcode):
         return ''
 
 def main(number):
+    number = number.upper()
+
     html = get_html('https://tellme.pw/avsox')
     site = etree.HTML(html).xpath('//div[@class="container"]/div/a/@href')[0]
     a = get_html(site + '/cn/search/' + number)
     html = etree.fromstring(a, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
-    result1 = str(html.xpath('//*[@id="waterfall"]/div/a/@href')).strip(" ['']")
-    if result1 == '' or result1 == 'null' or result1 == 'None':
-        a = get_html(site + '/cn/search/' + number.replace('-', '_'))
-        html = etree.fromstring(a, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
-        result1 = str(html.xpath('//*[@id="waterfall"]/div/a/@href')).strip(" ['']")
-        if result1 == '' or result1 == 'null' or result1 == 'None':
-            a = get_html(site + '/cn/search/' + number.replace('_', ''))
-            html = etree.fromstring(a, etree.HTMLParser())  # //table/tr[1]/td[1]/text()
-            result1 = str(html.xpath('//*[@id="waterfall"]/div/a/@href')).strip(" ['']")
-    web = get_html(result1)
+
+
+    links = html.xpath('//*[@id="waterfall"]/div/a/@href')
+    titles = html.xpath('//*[@id="waterfall"]/div/a/div[@class="photo-info"]/span/text()[1]')
+    ids = html.xpath('//*[@id="waterfall"]/div/a/div[@class="photo-info"]/span/date[1]/text()[1]')
+
+    movieList = []
+    for i, e in enumerate(links):
+        if str(ids[i]).upper().replace('_', '-') == number.replace('_', '-'):
+            movie = {'link':str(links[i]), 'title':str(titles[i]), 'id':str(ids[i])}
+            movieList.append(movie)
+
+    index = 0
+
+    if len(movieList) <= 0:
+        raise ValueError("no movie")
+    elif len(movieList) >= 2:
+        for i, link in enumerate(movieList):
+            print(str(i+1)+": "+movieList[i]['title'])
+            print(movieList[i]['link'])
+
+        index = int(input("input index: "))-1
+
+    if index < 0 or index >= len(movieList):
+        raise ValueError("out of range")
+
+    link = movieList[index]['link']
+
+    if link == '':
+        raise ValueError("no match")
+
+    web = get_html(link)
     soup = BeautifulSoup(web, 'lxml')
     info = str(soup.find(attrs={'class': 'row movie'}))
     dic = {
@@ -117,7 +142,7 @@ def main(number):
         'label': getLabel(info),
         'year': getYear(getRelease(info)),  # str(re.search('\d{4}',getRelease(a)).group()),
         'actor_photo': getActorPhoto(web),
-        'website': result1,
+        'website': link,
         'source': 'avsox.py',
         'series': getSeries(info),
     }

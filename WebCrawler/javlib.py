@@ -58,6 +58,12 @@ def getTag(tagsStr):
 
 def main(number: str):
     number = number.upper()
+    oldNumber = number
+
+    if re.match(r'^([0-9]+)ID-(.+)$', number):
+        g = re.search(r'^([0-9]+)ID-(.+)$', number)
+        number = 'ID-'+g[1]+g[2]
+
     # raw_cookies, user_agent = get_javlib_cookie()
     #
     # #Blank cookies mean javlib site return error
@@ -125,6 +131,10 @@ def main(number: str):
     except:
         dww_htmlcode = ''
 
+    realnumber = get_table_el_td(soup, "video_id")
+    if oldNumber != number:
+        realnumber = oldNumber
+
     if "/?v=jav" in result.url:
         dic = {
             "title": get_title(lx, soup),
@@ -140,7 +150,7 @@ def main(number: str):
             "actor": get_table_el_multi_anchor(soup, "video_cast"),
             "label": get_table_el_single_anchor(soup, "video_label"),
             "tag": getTag(get_table_el_multi_anchor(soup, "video_genres")),
-            "number": get_table_el_td(soup, "video_id"),
+            "number": realnumber,
             "release": get_table_el_td(soup, "video_date"),
             "runtime": get_from_xpath(lx, '//*[@id="video_length"]/table/tr/td[2]/span/text()'),
             "series":'',

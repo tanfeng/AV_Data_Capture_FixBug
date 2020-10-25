@@ -115,6 +115,8 @@ def getTag(htmlcode):  # 获取标签
         if 'onmouseout' in str(i):
             continue
         tag.append(translateTag_to_sc(i.get_text()))
+    if isUnCensored(htmlcode) == 1:
+        tag.append('无马赛克')
     return tag
 def isUnCensored(htmlcode):
     html = etree.fromstring(htmlcode, etree.HTMLParser())
@@ -130,6 +132,7 @@ def main(number):
         number = number.upper()
 
         htmlMultiText = get_html('https://www.javbus.com/search/' + number + '&type=1', cookies={'existmag':'all'})
+        #htmlMultiText = get_html('https://www.javbus.com/uncensored/search/' + number + '&type=1', cookies={'existmag':'all'})
         htmlMulti = etree.fromstring(htmlMultiText, etree.HTMLParser())
 
         links = htmlMulti.xpath('//*[@id="waterfall"]/div/a/@href')
@@ -138,7 +141,7 @@ def main(number):
 
         movieList = []
         for i, e in enumerate(links):
-            if str(ids[i]).upper() == number:
+            if str(ids[i]).upper().replace('_', '-') == number.replace('_', '-'):
                 movie = {'link':str(links[i]), 'title':str(titles[i]), 'id':str(ids[i])}
                 movieList.append(movie)
 
